@@ -72,21 +72,56 @@ const signup=(req,res)=>{
     res.render('user/signup',{msg:''})
 }
 
-//signup post 
+ 
 
-const signuppost =async (req,res)=>{
-     const data={
-        name:req.body.name,
-        email:req.body.email,
-        password:req.body.password
-        // password: await bcrypt.hash(req.body.password, 10),
+
+// const signuppost =async (req,res)=>{
+//      const data={
+//         name:req.body.name,
+//         email:req.body.email,
+//         password:req.body.password  
+//     }
+//     await collection.create(data);
+//  res.render('user/login',{msg:''})
+// }
+
+ 
+const signuppost = async (req, res) => {
+    try {
+        const response = await axios.post(`${base_url}/user/register`, {
+            name: req.body.name,
+            email: req.body.email,
+            phone: req.body.phone,
+            password: req.body.password,
+            password_confirm: req.body.password
+        });
+
+        if (response.data.status === 1) {
+            
+            console.error('Successful register Jk');
+           
+            const userData = response.data.data;
+            req.session.user = userData;
+           
+            const authToken = response.data.misc.access_token;
+            req.session.authToken = authToken;  
+            res.render("user/home", {
+                msg1: response.data.message, 
+                user: userData             
+            });
+        } else {
+            
+            const errorMessage = response.data.message;
+            res.render('user/signup', {
+                msg: errorMessage,
+               
+            });
+        }
+    } catch (error) {
+        console.error('Signup Error:', error);
+        res.render('user/signup', { msg: 'An error occurred during signup.' });
     }
-
-    await collection.create(data);
-
-
- res.render('user/login',{msg:''})
-}
+};
 
 
 const home=(req,res)=>{
